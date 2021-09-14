@@ -1,7 +1,7 @@
 from flask import Flask, jsonify
 from .db_services import open_connection, close_connection
 
-class Animes:
+class Anime:
 
     def __init__(self, anime, released_date, seasons):
         self.anime = anime.title()
@@ -37,7 +37,7 @@ class Animes:
         keys = [key for key in data_keys if key not in needed_keys]
 
         if len(keys) > 0:
-            raise KeyError(keys)
+            raise KeyError
             # TODO: importar e usar o InvalidKeysError(keys)
     
 
@@ -67,3 +67,57 @@ class Animes:
             "seasons": self.seasons
         }
 
+
+    @staticmethod
+    def get_all_animes():
+        
+        conn = open_connection()
+        
+        cur = conn.cursor()
+
+        cur.execute(
+            """
+                SELECT * FROM animes
+            """
+        )
+
+        result = cur.fetchall()
+
+        close_connection(conn, cur)
+
+        list_animes = [Anime(data).__dict__ for data in result]
+
+        return {"data": list_animes}
+
+    
+    @staticmethod
+    def get_specific_anime(anime_id):
+        conn = open_connection()
+        
+        cur = conn.cursor()
+
+        cur.execute(
+            """
+                SELECT * FROM animes WHERE id = (%s)
+            """
+            (id, )
+        )
+
+        result = cur.fetchone()
+
+        close_connection(conn, cur)
+
+        anime = Anime(result).__dict__
+
+        return {"data": anime}
+
+
+    @staticmethod
+    def if_exists(anime):
+
+        list_animes = Anime.get_all_animes()
+
+        result = [element for element in list_animes if element['anime'] == anime.title()]
+
+        if len(result) > 0:
+            raise FileExistsError

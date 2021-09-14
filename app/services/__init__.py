@@ -1,1 +1,1 @@
-from .animes_services import Animes
+from .animes_services import Anime

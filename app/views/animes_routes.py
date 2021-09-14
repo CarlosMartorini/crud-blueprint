@@ -1,20 +1,33 @@
 from flask import Blueprint, request, jsonify
-from app.services.animes_services import Animes
+from app.services.animes_services import Anime
 
 bp_animes = Blueprint('animes', __name__, url_prefix='/api')
 
-@bp_animes.route('/animes', methods=['GET', 'POST'])
+@bp_animes.post('/animes')
 def get_create():
     
     data = request.get_json()
 
     try:
-        Animes.verify_keys(data)
-        Animes.create_table()
-        new_anime_info = Animes(
+        
+        Anime.create_table()
+        
+        Anime.verify_keys(data)
+        
+        Anime.if_exists(data['anime'])
+        
+        new_anime_info = Anime(
             anime = data['anime'],
             released_date = data['released_date'],
             seasons = data['seasons']
         )
+
+        return jsonify(new_anime_info.add_new_anime()), 201
+
     except KeyError as e:
+
         return {'msg': e}, 422
+    
+    except:
+
+        return {'msg': f'{new_anime_info} already exists!'}, 409
