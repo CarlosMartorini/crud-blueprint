@@ -41,3 +41,24 @@ def show_all_animes():
     result = Anime.get_all_animes()
 
     return {'data': result}, 200
+
+
+@bp_animes.get('/animes/<int:anime_id>')
+def filter(anime_id: int):
+
+    Anime.create_table()
+
+    try:
+
+        result = Anime.get_specific_anime(anime_id)
+
+        return result
+    
+    except:
+
+        return {'msg': f'Anime with id {anime_id} not found!'}, 404
+
+
+@bp_animes.patch('/animes/<int:anime_id>')
+def update(anime_id):
+    ...
