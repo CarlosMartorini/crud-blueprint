@@ -28,3 +28,42 @@ class Animes:
         )
 
         close_connection(conn, cur)
+
+    
+    @staticmethod
+    def verify_keys(data):
+        needed_keys = ['anime', 'released_date', 'seasons']
+        data_keys = data.keys()
+        keys = [key for key in data_keys if key not in needed_keys]
+
+        if len(keys) > 0:
+            raise KeyError(keys)
+            # TODO: importar e usar o InvalidKeysError(keys)
+    
+
+    def add_new_anime(self):
+
+        conn = open_connection()
+
+        cur = conn.cursor()
+
+        cur.execute(
+            """
+                INSERT INTO animes 
+                    (anime, released_date, seasons)
+                VALUES
+                    (%s, %s, %s)
+                RETURNING
+                    id
+            """
+            (self.anime, self.released_date, self.seasons)
+        )
+
+        close_connection(conn, cur)
+
+        return {
+            "anime": self.anime,
+            "released_date": self.realesed_date,
+            "seasons": self.seasons
+        }
+
