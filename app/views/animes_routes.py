@@ -85,3 +85,20 @@ def update(anime_id):
 
         return {'msg': f'Anime with id {anime_id} not founded!'}, 404
 
+
+@bp_animes.delete('/animes/<int:anime_id>')
+def delete(anime_id):
+    
+    try:
+
+        Anime.create_table()
+
+        Anime.delete(anime_id)
+
+        return '', 204
+    
+    except:
+
+        return {'msg': f'Anime with id {anime_id} not founded!'}, 404
+
+

@@ -166,3 +166,21 @@ class Anime:
                 )
         
         close_connection(conn, cur)
+
+
+    @staticmethod
+    def delete(anime_id):
+
+        conn = open_connection()
+
+        cur = conn.cursor()
+
+        cur.execute(
+            """
+                DELETE FROM animes WHERE id = (%s) RETURNING *
+            """
+            (anime_id, )
+        )
+
+        close_connection(conn, cur)
+
