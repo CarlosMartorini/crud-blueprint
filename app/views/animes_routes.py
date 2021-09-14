@@ -31,3 +31,13 @@ def get_create():
     except:
 
         return {'msg': f'{new_anime_info} already exists!'}, 409
+
+
+@bp_animes.get('/animes')
+def show_all_animes():
+
+    Anime.create_table()
+
+    result = Anime.get_all_animes()
+
+    return {'data': result}, 200
