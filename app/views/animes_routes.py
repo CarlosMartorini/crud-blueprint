@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from app.services.animes_services import Anime
+from app.services.errors import InvalidKeyError
 
 bp_animes = Blueprint('animes', __name__, url_prefix='/api')
 
@@ -24,7 +25,7 @@ def get_create():
 
         return jsonify(new_anime_info.add_new_anime()), 201
 
-    except KeyError as e:
+    except InvalidKeyError as e:
 
         return {'msg': e}, 422
     
@@ -61,4 +62,26 @@ def filter(anime_id: int):
 
 @bp_animes.patch('/animes/<int:anime_id>')
 def update(anime_id):
-    ...
+    
+    data = request.get_json()
+    
+    try:
+
+        Anime.create_table()
+
+        Anime.verify_keys(data)
+
+        Anime.update(anime_id, data)
+
+        result = Anime.get_specific_anime(anime_id)
+
+        return result, 200
+
+    except InvalidKeyError as e:
+
+        return {'mag': e}, 422
+
+    except :
+
+        return {'msg': f'Anime with id {anime_id} not founded!'}, 404
+

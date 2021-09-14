@@ -1,5 +1,8 @@
+from logging import error
 from flask import Flask, jsonify
 from .db_services import open_connection, close_connection
+from .errors import InvalidKeyError
+
 
 class Anime:
 
@@ -37,8 +40,7 @@ class Anime:
         keys = [key for key in data_keys if key not in needed_keys]
 
         if len(keys) > 0:
-            raise KeyError
-            # TODO: importar e usar o InvalidKeysError(keys)
+            raise InvalidKeyError
     
 
     def add_new_anime(self):
@@ -120,4 +122,47 @@ class Anime:
         result = [element for element in list_animes if element['anime'] == anime.title()]
 
         if len(result) > 0:
-            raise FileExistsError
+            raise error
+    
+
+    @staticmethod
+    def update(anime_id, data):
+
+        conn = open_connection()
+
+        cur = conn.cursor()
+
+        keys = data.keys()
+
+        # TODO: verificar se o id não vai dar erro
+
+        for key in keys:
+
+            if key == 'anime':
+
+                cur.execute(
+                    """
+                        UPDATE animes SET anime = %s WHERE id = %s
+                    """
+                    (data['anime'].title(), anime_id)
+                )
+
+            if key == 'released_date':
+
+                cur.execute(
+                    """
+                        UPDATE animes SET released_date = %s WHERE id = %s
+                    """
+                    (data['released_date'], anime_id)
+                )
+            
+            if key == 'seasons':
+
+                cur.execute(
+                    """
+                        UPDATE animes SET seasons = %s WHERE id = %s
+                    """
+                    (data['seasons'], anime_id)
+                )
+        
+        close_connection(conn, cur)
