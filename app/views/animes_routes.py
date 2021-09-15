@@ -1,8 +1,8 @@
 from flask import Blueprint, request, jsonify
 from app.services.animes_services import Anime
-from app.services.errors import InvalidKeyError
+# from app.services.errors import InvalidKeyError
 
-bp_animes = Blueprint('animes', __name__, url_prefix='/api')
+bp_animes = Blueprint('animes', __name__, url_prefix='/')
 
 @bp_animes.post('/animes')
 def get_create():
@@ -23,15 +23,17 @@ def get_create():
             seasons = data['seasons']
         )
 
-        return jsonify(new_anime_info.add_new_anime()), 201
+        result = new_anime_info.add_new_anime()
 
-    except InvalidKeyError as e:
+        return jsonify(result), 201
+
+    except KeyError as e:
 
         return {'msg': e}, 422
     
     except:
 
-        return {'msg': f'{new_anime_info} already exists!'}, 409
+        return {'msg': 'Anime already exists!'}, 409
 
 
 @bp_animes.get('/animes')
@@ -41,7 +43,7 @@ def show_all_animes():
 
     result = Anime.get_all_animes()
 
-    return {'data': result}, 200
+    return jsonify({'data': result}), 200
 
 
 @bp_animes.get('/animes/<int:anime_id>')
@@ -73,13 +75,9 @@ def update(anime_id):
 
         Anime.update(anime_id, data)
 
-        result = Anime.get_specific_anime(anime_id)
+        return Anime.get_specific_anime(anime_id), 200
 
-        return result, 200
-
-    except InvalidKeyError as e:
-
-        return {'mag': e}, 422
+        # return result, 200
 
     except :
 

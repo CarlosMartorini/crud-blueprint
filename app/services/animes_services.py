@@ -1,5 +1,6 @@
 from logging import error
-from flask import Flask, jsonify
+
+from flask.json import jsonify
 from .db_services import open_connection, close_connection
 from .errors import InvalidKeyError
 
@@ -35,8 +36,11 @@ class Anime:
     
     @staticmethod
     def verify_keys(data):
+
         needed_keys = ['anime', 'released_date', 'seasons']
+        
         data_keys = data.keys()
+        
         keys = [key for key in data_keys if key not in needed_keys]
 
         if len(keys) > 0:
@@ -49,25 +53,27 @@ class Anime:
 
         cur = conn.cursor()
 
-        cur.execute(
-            """
-                INSERT INTO animes 
-                    (anime, released_date, seasons)
-                VALUES
-                    (%s, %s, %s)
-                RETURNING
-                    id
-            """
-            (self.anime, self.released_date, self.seasons)
-        )
+        query = """
+            INSERT INTO animes
+                (anime, released_date, seasons)
+            VALUES
+                (%s, %s, %s)
+            RETURNING *
+        """
+
+        params = (self.anime, self.released_date, self.seasons)
+
+        cur.execute(query, params)
 
         close_connection(conn, cur)
 
         return {
             "anime": self.anime,
-            "released_date": self.realesed_date,
+            "released_date": self.released_date,
             "seasons": self.seasons
         }
+
+        # TODO: acrescentar o id no retorno
 
 
     @staticmethod
@@ -87,9 +93,11 @@ class Anime:
 
         close_connection(conn, cur)
 
-        list_animes = [Anime(data).__dict__ for data in result]
+        keys = ["id", "anime", "released_date", "seasons"]
 
-        return {"data": list_animes}
+        result_dict = [dict(zip(keys, row)) for row in result]
+
+        return result_dict
 
     
     @staticmethod
@@ -101,17 +109,19 @@ class Anime:
         cur.execute(
             """
                 SELECT * FROM animes WHERE id = (%s)
-            """
-            (id, )
+            """,
+            (anime_id, )
         )
 
-        result = cur.fetchone()
+        result = cur.fetchall()
 
         close_connection(conn, cur)
 
-        anime = Anime(result).__dict__
+        keys = ["id", "anime", "released_date", "seasons"]
 
-        return {"data": anime}
+        result_dict = [dict(zip(keys, row)) for row in result]
+
+        return jsonify(result_dict)
 
 
     @staticmethod
@@ -122,7 +132,7 @@ class Anime:
         result = [element for element in list_animes if element['anime'] == anime.title()]
 
         if len(result) > 0:
-            raise error
+            return {'msg': 'This anime already exists!'}, 409
     
 
     @staticmethod
@@ -143,7 +153,7 @@ class Anime:
                 cur.execute(
                     """
                         UPDATE animes SET anime = %s WHERE id = %s
-                    """
+                    """,
                     (data['anime'].title(), anime_id)
                 )
 
@@ -152,7 +162,7 @@ class Anime:
                 cur.execute(
                     """
                         UPDATE animes SET released_date = %s WHERE id = %s
-                    """
+                    """,
                     (data['released_date'], anime_id)
                 )
             
@@ -161,7 +171,7 @@ class Anime:
                 cur.execute(
                     """
                         UPDATE animes SET seasons = %s WHERE id = %s
-                    """
+                    """,
                     (data['seasons'], anime_id)
                 )
         
@@ -178,7 +188,7 @@ class Anime:
         cur.execute(
             """
                 DELETE FROM animes WHERE id = (%s) RETURNING *
-            """
+            """,
             (anime_id, )
         )
 
