@@ -67,13 +67,11 @@ class Anime:
 
         close_connection(conn, cur)
 
-        return {
-            "anime": self.anime,
-            "released_date": self.released_date,
-            "seasons": self.seasons
-        }
+        result = Anime.get_all_animes()
 
-        # TODO: acrescentar o id no retorno
+        print(result[-1])
+
+        return result[-1]
 
 
     @staticmethod
@@ -143,8 +141,6 @@ class Anime:
         cur = conn.cursor()
 
         keys = data.keys()
-
-        # TODO: verificar se o id não vai dar erro
 
         for key in keys:
 
